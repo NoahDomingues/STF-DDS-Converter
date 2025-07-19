@@ -1,12 +1,37 @@
 ﻿<Window x:Class="STF_DDS_Converter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:STF_DDS_Converter"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="STF ↔ DDS Converter"
+        Height="300" Width="400">
+    <Grid Margin="10">
+        <StackPanel Orientation="Vertical" VerticalAlignment="Top">
 
+            <!-- Conversion Buttons -->
+            <Button Content="Convert STF to DDS"
+              Click="ConvertStfToDds_Click"
+              Margin="0,0,0,10"/>
+            <Button Content="Convert DDS to STF"
+              Click="ConvertDdsToStf_Click"
+              Margin="0,0,0,20"/>
+
+            <!-- Fallback Fields -->
+            <TextBlock Text="Width:" />
+            <TextBox x:Name="WidthBox"
+               Margin="0,5"/>
+
+            <TextBlock Text="Compression:" />
+            <ComboBox x:Name="FormatBox"
+                Margin="0,5">
+                <ComboBoxItem Content="DXT1"/>
+                <ComboBoxItem Content="DXT3"/>
+                <ComboBoxItem Content="DXT5"/>
+            </ComboBox>
+
+            <!-- Message Area -->
+            <TextBlock x:Name="MessageBlock"
+                 Foreground="DarkRed"
+                 Margin="0,10,0,0"/>
+
+        </StackPanel>
     </Grid>
 </Window>
