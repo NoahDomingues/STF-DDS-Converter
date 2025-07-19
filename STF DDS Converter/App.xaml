@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:STF_DDS_Converter"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+
     </Application.Resources>
 </Application>
