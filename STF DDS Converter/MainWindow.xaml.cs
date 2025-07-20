@@ -340,9 +340,6 @@ namespace STF_DDS_Converter
         }
 
         // Link click handlers
-        /// <summary>
-        /// Opens your custom AboutWindow as a dialog.
-        /// </summary>
         private void AboutLink_Click(object sender, RoutedEventArgs e)
         {
             var about = new AboutWindow
@@ -352,9 +349,6 @@ namespace STF_DDS_Converter
             about.ShowDialog();
         }
 
-        /// <summary>
-        /// Launches an external URL in the user’s default browser.
-        /// </summary>
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri)
