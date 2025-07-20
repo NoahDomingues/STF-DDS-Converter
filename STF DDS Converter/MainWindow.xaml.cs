@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace STF_DDS_Converter
@@ -20,7 +21,7 @@ namespace STF_DDS_Converter
         public MainWindow()
         {
             InitializeComponent();
-            FormatBox.SelectedIndex = 0; // default to DXT1
+            FormatBox.SelectedIndex = 0;
         }
 
         // Animate ProgressBar.Value → toValue over durationMs
@@ -57,7 +58,8 @@ namespace STF_DDS_Converter
 
             MessageBlock.Text = "";
             LogBox.Items.Clear();
-            AnimateProgress(0);
+            ProgressBar.Value = 0;
+            ProgressBar.Foreground = (Brush)FindResource("AccentBrush");
 
             // read header
             var header = new byte[HeaderSize];
@@ -85,7 +87,8 @@ namespace STF_DDS_Converter
 
             MessageBlock.Text = "";
             LogBox.Items.Clear();
-            AnimateProgress(0);
+            ProgressBar.Value = 0;
+            ProgressBar.Foreground = (Brush)FindResource("AccentBrush");
 
             Log("Selected DDS → " + _ddsPath);
         }
@@ -96,7 +99,10 @@ namespace STF_DDS_Converter
             {
                 MessageBlock.Text = "";
                 Log("Starting conversion...");
-                AnimateProgress(0);
+                ProgressBar.Value = 0;
+                ProgressBar.Foreground = (Brush)FindResource("AccentBrush");
+
+                bool success = false;
 
                 if (_mode == Mode.StfToDds)
                 {
@@ -109,8 +115,7 @@ namespace STF_DDS_Converter
                         throw new InvalidOperationException("Select a compression format.");
 
                     Log($"Converting STF→DDS: {width}×{width}, {format}");
-                    // Step 1: header saved → 10%
-                    ConvertStfToDds(_stfPath, width, format);
+                    success = ConvertStfToDds(_stfPath, width, format);
                 }
                 else if (_mode == Mode.DdsToStf)
                 {
@@ -118,11 +123,21 @@ namespace STF_DDS_Converter
                         throw new InvalidOperationException("No DDS selected.");
 
                     Log("Converting DDS→STF");
-                    ConvertDdsToStf(_ddsPath);
+                    success = ConvertDdsToStf(_ddsPath);
                 }
                 else
                 {
                     throw new InvalidOperationException("Select a file first.");
+                }
+
+                if (!success)
+                {
+                    // User cancelled overwrite
+                    ProgressBar.Foreground = Brushes.Red;
+                    AnimateProgress(100, 200);
+                    MessageBlock.Text = "Operation cancelled.";
+                    Log("Conversion cancelled by user (existing file not overwritten).");
+                    return;
                 }
 
                 AnimateProgress(100);
@@ -136,14 +151,28 @@ namespace STF_DDS_Converter
             }
         }
 
-        private void ConvertStfToDds(string stfPath, int width, string format)
+        // Returns false if user cancelled, true if conversion proceeded
+        private bool ConvertStfToDds(string stfPath, int width, string format)
         {
             string dir = Path.GetDirectoryName(stfPath);
             string name = Path.GetFileNameWithoutExtension(stfPath);
             string hdrFile = Path.Combine(dir, name + ".header");
             string ddsFile = Path.Combine(dir, name + ".dds");
 
-            // 1) Save header (10%)
+            // OVERWRITE CHECK
+            if (File.Exists(ddsFile))
+            {
+                var result = MessageBox.Show(
+                    $"Output file already exists:\n{ddsFile}\n\nOverwrite?",
+                    "Confirm Overwrite",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.No)
+                    return false;
+            }
+
+            // 1) Save header
             Log("Saving .header");
             using (var inFs = new FileStream(stfPath, FileMode.Open, FileAccess.Read))
             using (var hdrFs = new FileStream(hdrFile, FileMode.Create, FileAccess.Write))
@@ -152,18 +181,17 @@ namespace STF_DDS_Converter
                 inFs.Read(buf, 0, HeaderSize);
                 hdrFs.Write(buf, 0, HeaderSize);
             }
-            Dispatcher.Invoke(() => AnimateProgress(10));
+            AnimateProgress(10);
 
-            // 2) Build DDS header (30%)
+            // 2) Build DDS header
             Log("Building DDS header");
             var ddsHeader = BuildDdsHeader(width, format);
             int padLen = HeaderSize - ddsHeader.Length;
-            Dispatcher.Invoke(() => AnimateProgress(30));
+            AnimateProgress(30);
 
-            // 3) Write DDS with chunked copy loop (30→100%)
+            // 3) Write DDS with chunked copy (30→100)
             Log("Writing .dds file");
             using var outFs = new FileStream(ddsFile, FileMode.Create, FileAccess.Write);
-
             outFs.Write(ddsHeader, 0, ddsHeader.Length);
             outFs.Write(new byte[padLen], 0, padLen);
 
@@ -181,28 +209,40 @@ namespace STF_DDS_Converter
                 outFs.Write(buffer, 0, bytesRead);
                 copied += bytesRead;
 
-                // calculate percent from 30→100
                 int pct = 30 + (int)(70 * (copied / (double)totalBytes));
-
-                // only animate on change
                 if (pct != lastPct)
                 {
                     lastPct = pct;
-                    Dispatcher.Invoke(() => AnimateProgress(pct));
+                    AnimateProgress(pct);
                 }
             }
 
             Log("Wrote: " + ddsFile);
+            return true;
         }
 
-        private void ConvertDdsToStf(string ddsPath)
+        // Returns false if user cancelled, true if conversion proceeded
+        private bool ConvertDdsToStf(string ddsPath)
         {
             string dir = Path.GetDirectoryName(ddsPath);
             string name = Path.GetFileNameWithoutExtension(ddsPath);
             string stfFile = Path.Combine(dir, name + ".stf");
             string hdrFile = Path.Combine(dir, name + ".header");
 
-            // find header
+            // OVERWRITE CHECK
+            if (File.Exists(stfFile))
+            {
+                var result = MessageBox.Show(
+                    $"Output file already exists:\n{stfFile}\n\nOverwrite?",
+                    "Confirm Overwrite",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.No)
+                    return false;
+            }
+
+            // Header locate (no percent change)
             if (!File.Exists(hdrFile))
             {
                 Log(".header missing, prompt user");
@@ -211,21 +251,27 @@ namespace STF_DDS_Converter
                     throw new InvalidOperationException("Header not selected.");
                 hdrFile = dlg.FileName;
             }
-            Dispatcher.Invoke(() => AnimateProgress(30));
+            AnimateProgress(30);
 
-            // rebuild STF (30→100)
+            // Rebuild STF (30→60→100)
             Log("Rebuilding .stf");
-            using var outFs = new FileStream(stfFile, FileMode.Create, FileAccess.Write);
-            using var hdrFs = new FileStream(hdrFile, FileMode.Open, FileAccess.Read);
-            hdrFs.CopyTo(outFs);
-            Dispatcher.Invoke(() => AnimateProgress(60));
+            using (var outFs = new FileStream(stfFile, FileMode.Create, FileAccess.Write))
+            {
+                using var hdrFs = new FileStream(hdrFile, FileMode.Open, FileAccess.Read);
+                hdrFs.CopyTo(outFs);
+            }
+            AnimateProgress(60);
 
             using var inFs = new FileStream(ddsPath, FileMode.Open, FileAccess.Read);
             inFs.Seek(HeaderSize, SeekOrigin.Begin);
-            inFs.CopyTo(outFs);
-            Dispatcher.Invoke(() => AnimateProgress(100));
+            using (var outFs = new FileStream(stfFile, FileMode.Append, FileAccess.Write))
+            {
+                inFs.CopyTo(outFs);
+            }
+            AnimateProgress(100);
 
             Log("Wrote: " + stfFile);
+            return true;
         }
 
         public static string DetectCompression(byte[] header)
@@ -270,10 +316,10 @@ namespace STF_DDS_Converter
 
             uint fourCC = format switch
             {
-                "DXT1" => 0x31545844,
-                "DXT3" => 0x33545844,
-                "DXT5" => 0x35545844,
-                _ => 0
+                "DXT1" => 0x31545844u,
+                "DXT3" => 0x33545844u,
+                "DXT5" => 0x35545844u,
+                _ => 0u
             };
             Array.Copy(BitConverter.GetBytes(fourCC), 0, h, 84, 4);
             Array.Copy(BitConverter.GetBytes(0x1000), 0, h, 108, 4);
