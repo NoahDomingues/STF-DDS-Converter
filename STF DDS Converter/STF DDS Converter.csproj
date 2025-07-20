@@ -9,4 +9,17 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Resources\RedHatDisplay-Bold.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="Themes\TurquoiseTheme.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\RedHatDisplay-Bold.ttf" />
+    <Resource Include="Themes\TurquoiseTheme.xaml" />
+  </ItemGroup>
+
 </Project>

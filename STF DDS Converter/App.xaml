@@ -4,6 +4,14 @@
              xmlns:local="clr-namespace:STF_DDS_Converter"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 
+          pack://application:,,,/
+          tells WPF “look inside this assembly’s resources”
+        -->
+                <ResourceDictionary Source="pack://application:,,,/Themes/TurquoiseTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
