@@ -34,9 +34,8 @@
                FontSize="14"
                TextAlignment="Center"
                Margin="0,0,0,10">
-      A simple tool for extracting and rebuilding .stf/.dds textures.  
-      Automate conversion between STF (Operation Flashpoint) headers  
-      and DDS images for seamless modding workflows.
+      A simple tool for converting between STF (.stf) and DDS (.dds) textures.  
+      Originally designed to support texture modding in Operation Flashpoint: Dragon Rising and Red River.
         </TextBlock>
 
         <!-- Footer text -->
