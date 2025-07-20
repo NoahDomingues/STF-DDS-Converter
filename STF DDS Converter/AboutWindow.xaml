@@ -40,7 +40,7 @@
 
         <!-- Footer text -->
         <TextBlock FontSize="12"
-               TextAlignment="Center">
+               TextAlignment="Center" ToolTip="© Noah Domingues">
       Created by Noah Domingues • v1.0
         </TextBlock>
 
