@@ -7,10 +7,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>STF DDS Converter.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resources\RedHatDisplay-Bold.ttf" />
+    <None Remove="STF DDS Converter %28128%29.png" />
+    <None Remove="STF DDS Converter.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +22,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="STF DDS Converter.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\RedHatDisplay-Bold.ttf" />
+    <Resource Include="STF DDS Converter (128).png" />
+    <Resource Include="STF DDS Converter.png" />
     <Resource Include="Themes\TurquoiseTheme.xaml" />
     <Resource Include="TurquoiseTheme.xaml">
       <Generator>MSBuild:Compile</Generator>

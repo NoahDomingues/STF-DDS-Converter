@@ -8,7 +8,7 @@
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource TextBrush}"
         FontFamily="Segoe UI"
-        FontSize="14">
+        FontSize="14" Icon="/STF DDS Converter (128).png">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
