@@ -82,7 +82,19 @@
 
         <!-- Log Box -->
         <GroupBox Header="Log" Grid.Row="3">
-            <ListBox x:Name="LogBox"/>
+            <ListBox x:Name="LogBox"
+           Padding="4"
+           HorizontalContentAlignment="Stretch"
+           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+           ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,4"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </GroupBox>
     </Grid>
 </Window>
