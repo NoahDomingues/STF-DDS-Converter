@@ -211,6 +211,7 @@ namespace STF_DDS_Converter
                         ProgressBar.Foreground = Brushes.Red;
                         AnimateProgress(100, 200);
                         MessageBlock.Text = "Operation cancelled.";
+                        MessageBlock.Foreground = Brushes.Red;
                         Log("Conversion cancelled by user.");
                         return;
                     }
@@ -233,11 +234,15 @@ namespace STF_DDS_Converter
                 AnimateProgress(100);
                 Log("Conversion complete.");
                 MessageBlock.Text = "Done.";
+                MessageBlock.Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0xFF, 0x00));
             }
             catch (Exception ex)
             {
                 var dlg = new ErrorDialog("Error", ex.Message) { Owner = this };
                 dlg.ShowDialog();
+                // update main‐window status
+                MessageBlock.Text = ex.Message;
+                MessageBlock.Foreground = Brushes.Red;
                 Log("Error: " + ex.Message);
             }
         }
