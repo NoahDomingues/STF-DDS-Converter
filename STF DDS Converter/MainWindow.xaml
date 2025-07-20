@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="STF DDS Converter"
         Style="{StaticResource {x:Type Window}}"
-        Height="450" Width="400"
+        Height="480" Width="400"
+        MinHeight="480" MinWidth="400"
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource TextBrush}"
         FontFamily="Segoe UI"
@@ -44,7 +45,7 @@
                 <TextBlock Text="Width:" VerticalAlignment="Center"/>
                 <TextBox x:Name="WidthBox" Width="80" Margin="5,0"/>
                 <TextBlock Text="Compression:" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <ComboBox x:Name="FormatBox" Width="100" Margin="5,0">
+                <ComboBox x:Name="FormatBox" Width="100" Margin="5,0" ItemContainerStyle="{StaticResource {x:Type ComboBoxItem}}">
                     <ComboBoxItem Content="DXT1"/>
                     <ComboBoxItem Content="DXT3"/>
                     <ComboBoxItem Content="DXT5"/>
@@ -64,6 +65,7 @@
             <Button x:Name="ConvertButton"
               Content="Convert"
               Click="Convert_Click"
+              Margin="0,0,0,5"
               Height="30"/>
             <TextBlock x:Name="MessageBlock"
                  Foreground="DarkRed"

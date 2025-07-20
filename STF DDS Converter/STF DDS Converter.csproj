@@ -15,11 +15,15 @@
 
   <ItemGroup>
     <Page Remove="Themes\TurquoiseTheme.xaml" />
+    <Page Remove="TurquoiseTheme.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\RedHatDisplay-Bold.ttf" />
     <Resource Include="Themes\TurquoiseTheme.xaml" />
+    <Resource Include="TurquoiseTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
   </ItemGroup>
 
 </Project>

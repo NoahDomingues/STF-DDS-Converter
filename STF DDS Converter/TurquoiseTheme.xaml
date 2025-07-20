@@ -68,7 +68,6 @@
 
 	<!-- 5) TextBox Style -->
 	<Style TargetType="TextBox">
-		<Setter Property="VerticalContentAlignment" Value="Center"/>
 		<Setter Property="FontFamily" Value="pack://application:,,,/Resources/#Red Hat Display Bold"/>
 		<Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
 		<Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -85,20 +84,6 @@
 	</Style>
 
 	<!-- 6) ComboBox Style -->
-	<ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
-		<Border x:Name="Border"
-				CornerRadius="0"
-				Background="{StaticResource SurfaceBrush}"
-				BorderBrush="{StaticResource BorderBrush}"
-				BorderThickness="1">
-			<Path x:Name="Arrow"
-				  Fill="{StaticResource AccentBrush}"
-				  HorizontalAlignment="Center"
-				  VerticalAlignment="Center"
-				  Data="M 0 0 L 4 4 L 8 0 Z"/>
-		</Border>
-	</ControlTemplate>
-
 	<Style TargetType="ComboBox">
 		<Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
 		<Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -106,68 +91,32 @@
 		<Setter Property="BorderThickness" Value="1"/>
 		<Setter Property="Padding" Value="4"/>
 		<Setter Property="Margin" Value="4"/>
-		<Setter Property="ItemContainerStyle" Value="{StaticResource {x:Type ComboBoxItem}}"/>
-		<Setter Property="Template">
-			<Setter.Value>
-				<ControlTemplate TargetType="ComboBox">
-					<Grid>
-						<!-- ComboBox Chrome -->
-						<ToggleButton Name="ToggleButton"
-									  Template="{StaticResource ComboBoxToggleButton}"
-									  Grid.Column="2"
-									  Focusable="false"
-									  IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-									  ClickMode="Press"/>
-
-						<!-- Selected Item -->
-						<ContentPresenter Name="ContentSite"
-										  IsHitTestVisible="False"
-										  Content="{TemplateBinding SelectionBoxItem}"
-										  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-										  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-										  Margin="4"
-										  VerticalAlignment="Center"
-										  HorizontalAlignment="Left"/>
-
-						<!-- Dropdown Popup -->
-						<Popup Name="Popup"
-							   Placement="Bottom"
-							   IsOpen="{TemplateBinding IsDropDownOpen}"
-							   AllowsTransparency="True"
-							   Focusable="False"
-							   PopupAnimation="Slide">
-							<Grid Name="DropDown"
-								  SnapsToDevicePixels="True"
-								  MinWidth="{TemplateBinding ActualWidth}"
-								  MaxHeight="{TemplateBinding MaxDropDownHeight}"
-								  Background="{StaticResource SurfaceBrush}">
-								<Border x:Name="DropDownBorder"
-										BorderBrush="{StaticResource BorderBrush}"
-										BorderThickness="1"
-										Background="{StaticResource SurfaceBrush}"/>
-								<ScrollViewer Margin="4" SnapsToDevicePixels="True">
-									<StackPanel IsItemsHost="True"
-												KeyboardNavigation.DirectionalNavigation="Contained"/>
-								</ScrollViewer>
-							</Grid>
-						</Popup>
-					</Grid>
-					<ControlTemplate.Triggers>
-						<Trigger Property="HasItems" Value="false">
-							<Setter TargetName="DropDownBorder" Property="MinHeight" Value="95"/>
-						</Trigger>
-						<Trigger Property="IsEnabled" Value="false">
-							<Setter Property="Foreground" Value="Gray"/>
-						</Trigger>
-						<Trigger Property="IsMouseOver" Value="true">
-							<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-						</Trigger>
-					</ControlTemplate.Triggers>
-				</ControlTemplate>
-			</Setter.Value>
-		</Setter>
 	</Style>
+	<Style TargetType="ComboBoxItem">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+		<Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+		<Setter Property="Padding" Value="4,2"/>
+		<Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Style.Triggers>
+			<!-- Hover -->
+			<Trigger Property="IsMouseOver" Value="True">
+				<Setter Property="Background" Value="{StaticResource HighlightBrush}"/>
+			</Trigger>
 
+			<!-- Selected item (in dropdown or when collapsed) -->
+			<Trigger Property="IsSelected" Value="True">
+				<Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+				<Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+			</Trigger>
+
+			<!-- Focused but not selected (optional) -->
+			<Trigger Property="IsFocused" Value="True">
+				<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+				<Setter Property="BorderThickness" Value="1"/>
+			</Trigger>
+		</Style.Triggers>
+	</Style>
 
 	<!-- 7) ProgressBar Style -->
 	<Style TargetType="ProgressBar">
@@ -202,7 +151,6 @@
 		<Setter Property="FontFamily" Value="pack://application:,,,/Resources/#Red Hat Display Bold"/>
 		<Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
 		<Setter Property="Margin" Value="4"/>
-		<Setter Property="VerticalAlignment" Value="Center"/>
 	</Style>
 	<Style TargetType="GroupBox">
 		<Setter Property="FontFamily" Value="pack://application:,,,/Resources/#Red Hat Display Bold"/>
