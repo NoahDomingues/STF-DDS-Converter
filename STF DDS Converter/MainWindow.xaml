@@ -37,7 +37,7 @@
             <Button x:Name="SelectStfButton"
               Content="Select .stf File"
               Click="SelectStf_Click"
-              Margin="0,0,0,5"/>
+              Margin="0,0,0,5" ToolTip="Select .stf file for conversion"/>
             <TextBlock x:Name="StfPathText"
                  Text="No STF selected"
                  Margin="0,0,0,10"/>
@@ -45,9 +45,9 @@
             <!-- Width & Format -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                 <TextBlock Text="Width:" VerticalAlignment="Center"/>
-                <TextBox x:Name="WidthBox" Width="80" Margin="5,0"/>
+                <TextBox x:Name="WidthBox" Width="80" Margin="5,0" ToolTip="Texture width"/>
                 <TextBlock Text="Compression:" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <ComboBox x:Name="FormatBox" Width="100" Margin="5,0" ItemContainerStyle="{StaticResource {x:Type ComboBoxItem}}">
+                <ComboBox x:Name="FormatBox" Width="100" Margin="5,0" ItemContainerStyle="{StaticResource {x:Type ComboBoxItem}}" ToolTip="Texture compression">
                     <ComboBoxItem Content="DXT1"/>
                     <ComboBoxItem Content="DXT3"/>
                     <ComboBoxItem Content="DXT5"/>
@@ -58,7 +58,7 @@
             <Button x:Name="SelectDdsButton"
               Content="Select .dds File"
               Click="SelectDds_Click"
-              Margin="0,0,0,5"/>
+              Margin="0,0,0,5" ToolTip="Select .dds file for conversion"/>
             <TextBlock x:Name="DdsPathText"
                  Text="No DDS selected"
                  Margin="0,0,0,10"/>
@@ -68,7 +68,7 @@
               Content="Convert"
               Click="Convert_Click"
               Margin="0,0,0,5"
-              Height="30"/>
+              Height="30" ToolTip="Convert the selected file"/>
             <TextBlock x:Name="MessageBlock"
                  Foreground="Red"
                  Margin="0,10,0,0"/>
@@ -80,7 +80,7 @@
                  Height="20"
                  Minimum="0"
                  Maximum="100"
-                 Margin="0,10,0,10"/>
+                 Margin="0,10,0,10" ToolTip="Progress"/>
 
         <!-- Log Box -->
         <GroupBox Header="Log" Grid.Row="3">
@@ -88,7 +88,7 @@
            Padding="4"
            HorizontalContentAlignment="Stretch"
            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-           ScrollViewer.VerticalScrollBarVisibility="Auto">
+           ScrollViewer.VerticalScrollBarVisibility="Auto" ToolTip="Logs">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}"
@@ -105,15 +105,15 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             Margin="0,10,0,0">
-            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="About…">
+            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="About STF ↔ DDS Converter">
     <Hyperlink Click="AboutLink_Click" Foreground="{StaticResource AccentBrush}">About</Hyperlink>
             </TextBlock>
-            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="Discord…">
+            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="Operation Flashpoint Discord server">
     <Hyperlink RequestNavigate="Hyperlink_RequestNavigate"  
                NavigateUri="https://discord.gg/Z88NnTgpWU"
                Foreground="{StaticResource AccentBrush}">Discord</Hyperlink>
             </TextBlock>
-            <TextBlock Margin="0,0,0,0" VerticalAlignment="Center" ToolTip="GitHub…">
+            <TextBlock Margin="0,0,0,0" VerticalAlignment="Center" ToolTip="GitHub repository">
     <Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
                NavigateUri="https://github.com/NoahDomingues/FUI-SWF-Converter"
                Foreground="{StaticResource AccentBrush}">GitHub</Hyperlink>

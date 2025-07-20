@@ -27,7 +27,7 @@
                FontSize="20"
                FontWeight="Black"
                Margin="0,0,0,10"
-               TextAlignment="Center"/>
+               TextAlignment="Center" ToolTip="STF ↔ DDS Converter"/>
 
         <!-- Description -->
         <TextBlock TextWrapping="Wrap"
