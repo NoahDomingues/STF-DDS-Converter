@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Diagnostics;
+using System.Windows.Navigation;
 
 namespace STF_DDS_Converter
 {
@@ -336,5 +338,31 @@ namespace STF_DDS_Converter
             Array.Copy(BitConverter.GetBytes(0x1000), 0, h, 108, 4);
             return h;
         }
+
+        // Link click handlers
+        /// <summary>
+        /// Opens your custom AboutWindow as a dialog.
+        /// </summary>
+        private void AboutLink_Click(object sender, RoutedEventArgs e)
+        {
+            var about = new AboutWindow
+            {
+                Owner = this
+            };
+            about.ShowDialog();
+        }
+
+        /// <summary>
+        /// Launches an external URL in the user’s default browser.
+        /// </summary>
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri)
+            {
+                UseShellExecute = true
+            });
+            e.Handled = true;
+        }
+
     }
 }

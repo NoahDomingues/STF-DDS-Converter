@@ -6,7 +6,7 @@
 	<Color x:Key="SurfaceColor">   #FF2B2B2B</Color>
 	<Color x:Key="Accent1Color">   #FF1ABC9C</Color>
 	<Color x:Key="Accent2Color">   #FF16A085</Color>
-	<Color x:Key="TextColor">      #FFDDDDDD</Color>
+	<Color x:Key="TextColor">      #FFFFFFFF</Color>
 	<Color x:Key="BorderColor">    #FF444444</Color>
 	<Color x:Key="HighlightColor"> #FF333333</Color>
 

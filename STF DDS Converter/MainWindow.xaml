@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="STF DDS Converter"
         Style="{StaticResource {x:Type Window}}"
-        Height="500" Width="400"
+        Height="516" Width="400"
         MinHeight="500" MinWidth="400"
         Background="{DynamicResource BackgroundBrush}"
         Foreground="{DynamicResource TextBrush}"
@@ -19,11 +19,13 @@
             <!-- Progress -->
             <RowDefinition Height="*"/>
             <!-- Log -->
+            <RowDefinition Height="Auto"/>
+            <!-- 4: Footer links -->
         </Grid.RowDefinitions>
 
         <!-- Title -->
         <TextBlock Grid.Row="0"
-               Text="STF DDS Converter"
+               Text="STF ↔ DDS Converter"
                FontSize="24"
                FontWeight="Bold"
                HorizontalAlignment="Center"
@@ -96,5 +98,26 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </GroupBox>
+        
+        <!-- Footer links -->
+        <StackPanel Grid.Row="4"
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            Margin="0,10,0,0">
+            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="About…">
+    <Hyperlink Click="AboutLink_Click" Foreground="{StaticResource AccentBrush}">About</Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center" ToolTip="Discord…">
+    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate"  
+               NavigateUri="https://discord.gg/Z88NnTgpWU"
+               Foreground="{StaticResource AccentBrush}">Discord</Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="0,0,0,0" VerticalAlignment="Center" ToolTip="GitHub…">
+    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate"
+               NavigateUri="https://github.com/NoahDomingues/FUI-SWF-Converter"
+               Foreground="{StaticResource AccentBrush}">GitHub</Hyperlink>
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </Window>
