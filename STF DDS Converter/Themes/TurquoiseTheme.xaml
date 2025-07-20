@@ -219,4 +219,47 @@
 		<Setter Property="BorderThickness" Value="1"/>
 		<Setter Property="Padding" Value="6"/>
 	</Style>
+
+	<!-- 11) Thin, Dark ScrollBars -->
+	<Style TargetType="ScrollBar">
+		<!-- Make it slim -->
+		<Setter Property="Width"  Value="6"/>
+		<Setter Property="Height" Value="6"/>
+		<!-- Match surface background -->
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="ScrollBar">
+					<Grid Background="{TemplateBinding Background}">
+						<Track Name="PART_Track"
+							   IsDirectionReversed="true"
+							   Focusable="false">
+
+							<!-- no arrow buttons -->
+							<Track.DecreaseRepeatButton>
+								<RepeatButton Command="ScrollBar.LineUpCommand"
+											  Style="{x:Null}"
+											  Background="Transparent"
+											  Height="0"/>
+							</Track.DecreaseRepeatButton>
+
+							<!-- thumb -->
+                            <Track.Thumb>
+                                <Thumb Background="{StaticResource BorderBrush}" Margin="0"/>
+                            </Track.Thumb>
+
+
+                            <Track.IncreaseRepeatButton>
+								<RepeatButton Command="ScrollBar.LineDownCommand"
+											  Style="{x:Null}"
+											  Background="Transparent"
+											  Height="0"/>
+							</Track.IncreaseRepeatButton>
+
+						</Track>
+					</Grid>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
 </ResourceDictionary>
