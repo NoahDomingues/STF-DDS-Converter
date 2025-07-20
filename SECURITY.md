@@ -1,8 +1,8 @@
 # 🔒 Security
 
-[<img src="https://github.com/user-attachments/assets/b20a8e62-95f1-4a9c-8d39-609dbde508ad">](https://discord.gg/Z88NnTgpWU)
+[<img src="https://github.com/user-attachments/assets/5099c8ea-53ea-4609-b53b-91b7668f255a">](https://discord.gg/Z88NnTgpWU)
 
-We take the security of our software products and services seriously, including **[FUI SWF Converter](https://github.com/NoahDomingues/FUI-SWF-Converter)**.
+We take the security of our software products and services seriously, including **[STF DDS Converter](https://github.com/NoahDomingues/STF-DDS-Converter)**.
 
 If you believe you have found a security vulnerability in this open source repository, you can report it to us privately through our **[Discord server](https://discord.gg/Z88NnTgpWU)**.
 
