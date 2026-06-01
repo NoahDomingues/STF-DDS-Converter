@@ -14,12 +14,9 @@ namespace STF_DDS_Converter
 {
     public partial class MainWindow : Window
     {
-        private const int HeaderSize = 0x800;
-
         private enum Mode { None, StfToDds, DdsToStf }
         private Mode _mode = Mode.None;
 
-        // full, un-trimmed paths
         private string _stfPath;
         private string _ddsPath;
 
@@ -28,11 +25,9 @@ namespace STF_DDS_Converter
             InitializeComponent();
             FormatBox.SelectedIndex = 0;
 
-            // placeholders
             StfPathText.Text = "No file selected";
             DdsPathText.Text = "No file selected";
 
-            // re-trim on resize
             StfPathText.SizeChanged += PathText_SizeChanged;
             DdsPathText.SizeChanged += PathText_SizeChanged;
         }
@@ -53,7 +48,6 @@ namespace STF_DDS_Converter
                 return;
             }
 
-            // measure full text width
             var ft = new FormattedText(
                 fullPath,
                 CultureInfo.CurrentUICulture,
@@ -69,7 +63,6 @@ namespace STF_DDS_Converter
                 return;
             }
 
-            // compute chars we can show
             double avgW = ft.Width / fullPath.Length;
             int maxChars = Math.Max(4, (int)(target.ActualWidth / avgW));
             int keep = Math.Max(1, (maxChars - 3) / 2);
@@ -79,9 +72,6 @@ namespace STF_DDS_Converter
             target.Text = $"{start}…{end}";
         }
 
-        /// <summary>
-        /// Animate ProgressBar.Value → toValue over durationMs ms.
-        /// </summary>
         private void AnimateProgress(double toValue, int durationMs = 150)
         {
             var anim = new DoubleAnimation
@@ -94,9 +84,6 @@ namespace STF_DDS_Converter
             ProgressBar.BeginAnimation(ProgressBar.ValueProperty, anim);
         }
 
-        /// <summary>
-        /// Append a line to the log and scroll into view.
-        /// </summary>
         private void Log(string msg)
         {
             Dispatcher.Invoke(() =>
@@ -106,9 +93,14 @@ namespace STF_DDS_Converter
             });
         }
 
+        private static string SidecarPathFor(string basePath)
+            => Path.ChangeExtension(basePath, ".stfmips.json");
+
+        private static string LegacyHeaderPathFor(string basePath)
+            => Path.Combine(Path.GetDirectoryName(basePath)!, Path.GetFileNameWithoutExtension(basePath) + ".header");
+
         private void SelectStf_Click(object sender, RoutedEventArgs e)
         {
-            // clear any previous DDS selection
             _ddsPath = null;
             UpdateFilePathDisplay(null, DdsPathText);
 
@@ -124,20 +116,28 @@ namespace STF_DDS_Converter
             AnimateProgress(0);
             ProgressBar.Foreground = (Brush)FindResource("AccentBrush");
 
-            // detect compression & width
-            var header = new byte[HeaderSize];
-            using var fs = new FileStream(_stfPath, FileMode.Open, FileAccess.Read);
-            fs.Read(header, 0, HeaderSize);
+            try
+            {
+                var tex = TxpcTexture.ParseFromStf(_stfPath);
+                FormatBox.Text = tex.Format;
+                WidthBox.Text = tex.DdsWidth.ToString();
 
-            FormatBox.Text = DetectCompression(header) ?? "";
-            WidthBox.Text = DetectWidth(header)?.ToString() ?? "";
-
-            Log($"Selected STF → width={WidthBox.Text}, format={FormatBox.Text}");
+                Log($"Selected STF: {Path.GetFileName(_stfPath)}");
+                Log($"  TXPC header width (engine): {tex.HeaderWidth}");
+                Log($"  DDS export size: {tex.DdsWidth}×{tex.DdsHeight}, {tex.Format}");
+                Log($"  Mip levels in file: {tex.Segments.Count}");
+                Log($"  Pre-mip bytes: {tex.PreMipBytes.Length} (saved to .header)");
+            }
+            catch (Exception ex)
+            {
+                FormatBox.Text = TxpcTexture.DetectCompression(File.ReadAllBytes(_stfPath)) ?? "";
+                WidthBox.Text = "";
+                Log("Parse warning: " + ex.Message);
+            }
         }
 
         private void SelectDds_Click(object sender, RoutedEventArgs e)
         {
-            // clear any previous STF selection
             _stfPath = null;
             UpdateFilePathDisplay(null, StfPathText);
             WidthBox.Text = "";
@@ -155,7 +155,15 @@ namespace STF_DDS_Converter
             AnimateProgress(0);
             ProgressBar.Foreground = (Brush)FindResource("AccentBrush");
 
+            string sidecar = SidecarPathFor(_ddsPath);
+            string header = LegacyHeaderPathFor(_ddsPath);
             Log("Selected DDS → " + _ddsPath);
+            if (File.Exists(sidecar))
+                Log("  Found sidecar: " + Path.GetFileName(sidecar));
+            else if (File.Exists(header))
+                Log("  Found header: " + Path.GetFileName(header));
+            else
+                Log("  Need .stfmips.json + .header from STF→DDS export (same folder).");
         }
 
         private async void Convert_Click(object sender, RoutedEventArgs e)
@@ -167,45 +175,36 @@ namespace STF_DDS_Converter
                 AnimateProgress(0);
                 ProgressBar.Foreground = (Brush)FindResource("AccentBrush");
 
-                // build target path & validate
                 string targetPath;
                 if (_mode == Mode.StfToDds)
                 {
                     if (string.IsNullOrEmpty(_stfPath))
                         throw new InvalidOperationException("No STF selected.");
-                    if (!int.TryParse(WidthBox.Text, out var w) || w <= 0)
-                        throw new InvalidOperationException("Invalid width.");
-                    if (!(FormatBox.SelectedItem is ComboBoxItem cb) ||
-                        string.IsNullOrEmpty(cb.Content as string))
-                        throw new InvalidOperationException("Select a compression format.");
 
-                    var dir = Path.GetDirectoryName(_stfPath);
+                    var dir = Path.GetDirectoryName(_stfPath)!;
                     var name = Path.GetFileNameWithoutExtension(_stfPath);
-                    targetPath = Path.Combine(dir!, name + ".dds");
+                    targetPath = Path.Combine(dir, name + ".dds");
                 }
                 else if (_mode == Mode.DdsToStf)
                 {
                     if (string.IsNullOrEmpty(_ddsPath))
                         throw new InvalidOperationException("No DDS selected.");
 
-                    var dir = Path.GetDirectoryName(_ddsPath);
+                    var dir = Path.GetDirectoryName(_ddsPath)!;
                     var name = Path.GetFileNameWithoutExtension(_ddsPath);
-                    targetPath = Path.Combine(dir!, name + ".stf");
+                    targetPath = Path.Combine(dir, name + ".stf");
                 }
                 else
                 {
                     throw new InvalidOperationException("Select a file first.");
                 }
 
-                // prompt overwrite on UI thread
                 if (File.Exists(targetPath))
                 {
                     var confirm = new ConfirmDialog(
                         "Confirm Overwrite",
                         $"Output file already exists:\n{targetPath}\n\nOverwrite?")
-                    {
-                        Owner = this
-                    };
+                    { Owner = this };
                     if (confirm.ShowDialog() != true)
                     {
                         ProgressBar.Foreground = Brushes.Red;
@@ -217,19 +216,10 @@ namespace STF_DDS_Converter
                     }
                 }
 
-                // run conversion off UI thread
                 if (_mode == Mode.StfToDds)
-                {
-                    int width = int.Parse(WidthBox.Text);
-                    string fmt = (FormatBox.SelectedItem as ComboBoxItem)!.Content as string;
-                    Log($"Converting STF→DDS: {width}×{width}, {fmt}");
-                    await Task.Run(() => ConvertStfToDds(_stfPath, width, fmt));
-                }
+                    await Task.Run(() => ConvertStfToDds(_stfPath));
                 else
-                {
-                    Log("Converting DDS→STF");
                     await Task.Run(() => ConvertDdsToStf(_ddsPath));
-                }
 
                 AnimateProgress(100);
                 Log("Conversion complete.");
@@ -240,174 +230,113 @@ namespace STF_DDS_Converter
             {
                 var dlg = new ErrorDialog("Error", ex.Message) { Owner = this };
                 dlg.ShowDialog();
-                // update main‐window status
                 MessageBlock.Text = ex.Message;
                 MessageBlock.Foreground = Brushes.Red;
                 Log("Error: " + ex.Message);
             }
         }
 
-        private void ConvertStfToDds(string stfPath, int width, string format)
+        private void ConvertStfToDds(string stfPath)
         {
-            // header → 10%
-            Log("Saving .header");
+            Log("Parsing TXPC...");
+            var tex = TxpcTexture.ParseFromStf(stfPath);
+            byte[] stfData = File.ReadAllBytes(stfPath);
+
             string dir = Path.GetDirectoryName(stfPath)!;
             string name = Path.GetFileNameWithoutExtension(stfPath);
             string hdrFile = Path.Combine(dir, name + ".header");
-            using (var inFs = new FileStream(stfPath, FileMode.Open, FileAccess.Read))
-            using (var hdrFs = new FileStream(hdrFile, FileMode.Create, FileAccess.Write))
-            {
-                var buf = new byte[HeaderSize];
-                inFs.Read(buf, 0, HeaderSize);
-                hdrFs.Write(buf, 0, HeaderSize);
-            }
-            Dispatcher.Invoke(() => AnimateProgress(10));
+            string sidecarFile = SidecarPathFor(stfPath);
+            string ddsFile = Path.Combine(dir, name + ".dds");
 
-            // build DDS header → 30%
-            Log("Building DDS header");
-            var ddsHeader = BuildDdsHeader(width, format);
-            int padLen = HeaderSize - ddsHeader.Length;
-            Dispatcher.Invoke(() => AnimateProgress(30));
+            Dispatcher.Invoke(() => AnimateProgress(15));
 
-            // chunked copy → 30–100%
-            Log("Writing .dds file");
-            string ddsFile = Path.Combine(Path.GetDirectoryName(stfPath)!, name + ".dds");
-            using var outFs = new FileStream(ddsFile, FileMode.Create, FileAccess.Write);
-            outFs.Write(ddsHeader, 0, ddsHeader.Length);
-            outFs.Write(new byte[padLen], 0, padLen);
+            Log($"Saving pre-mip header ({tex.PreMipBytes.Length} bytes) → .header");
+            File.WriteAllBytes(hdrFile, tex.PreMipBytes);
 
-            using var inFs2 = new FileStream(stfPath, FileMode.Open, FileAccess.Read);
-            inFs2.Seek(HeaderSize, SeekOrigin.Begin);
+            Log("Saving mip layout → .stfmips.json");
+            TxpcTexture.SaveSidecar(tex.ToSidecar(), sidecarFile);
 
-            long totalBytes = inFs2.Length - HeaderSize;
-            long copied = 0;
-            int lastPct = 30;
-            var buffer = new byte[81920];
-            int bytesRead;
-            while ((bytesRead = inFs2.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                outFs.Write(buffer, 0, bytesRead);
-                copied += bytesRead;
-                int pct = 30 + (int)(70 * (copied / (double)totalBytes));
-                if (pct != lastPct)
-                {
-                    lastPct = pct;
-                    Dispatcher.Invoke(() => AnimateProgress(pct));
-                }
-            }
+            Dispatcher.Invoke(() => AnimateProgress(35));
 
+            Log("Extracting DXT mip chain (strips OFDR per-mip prefix when present)...");
+            byte[] linearDxt = tex.BuildLinearDxt(stfData);
+
+            Log($"Building DDS {tex.DdsWidth}×{tex.DdsHeight} {tex.Format}, payload {linearDxt.Length} bytes");
+            byte[] dds = TxpcTexture.BuildDdsFile(linearDxt, tex.DdsWidth, tex.DdsHeight, tex.Format);
+            File.WriteAllBytes(ddsFile, dds);
+
+            Dispatcher.Invoke(() => AnimateProgress(100));
             Log("Wrote: " + ddsFile);
+            Log("Keep .header and .stfmips.json beside the DDS for import.");
         }
 
         private void ConvertDdsToStf(string ddsPath)
         {
-            // ensure header → 30%
             string dir = Path.GetDirectoryName(ddsPath)!;
             string name = Path.GetFileNameWithoutExtension(ddsPath);
             string stfFile = Path.Combine(dir, name + ".stf");
             string hdrFile = Path.Combine(dir, name + ".header");
+            string sidecarFile = SidecarPathFor(Path.Combine(dir, name + ".stf"));
+
+            if (!File.Exists(sidecarFile))
+                sidecarFile = SidecarPathFor(ddsPath);
 
             if (!File.Exists(hdrFile))
             {
-                Log(".header missing, prompt user");
                 var dlg = new OpenFileDialog { Filter = "Header files|*.header" };
                 if (dlg.ShowDialog() != true)
-                    throw new InvalidOperationException("Header not selected.");
+                    throw new InvalidOperationException("Pre-mip .header not found (export from STF first).");
                 hdrFile = dlg.FileName;
             }
-            Dispatcher.Invoke(() => AnimateProgress(30));
 
-            // copy header → 60%
-            Log("Rebuilding .stf");
+            if (!File.Exists(sidecarFile))
+                throw new InvalidOperationException(
+                    "Missing .stfmips.json sidecar. Re-export from STF with this converter version.");
+
+            Dispatcher.Invoke(() => AnimateProgress(20));
+
+            byte[] preMip = File.ReadAllBytes(hdrFile);
+            if (preMip.Length == 0x800)
+            {
+                Log("WARNING: .header is 2048 bytes (old converter). Re-export STF→DDS with this build.");
+            }
+
+            var sidecar = TxpcTexture.LoadSidecar(sidecarFile);
+            var tex = TxpcTexture.FromSidecar(sidecar, preMip);
+
+            Log($"Importing {tex.DdsWidth}×{tex.DdsHeight} {tex.Format}, {tex.Segments.Count} mip segments");
+
+            Dispatcher.Invoke(() => AnimateProgress(45));
+
+            byte[] linearDxt = TxpcTexture.ReadLinearDxtFromDds(ddsPath);
+            byte[] mipBlob = tex.BuildMipBlobFromLinearDxt(linearDxt);
+
+            Dispatcher.Invoke(() => AnimateProgress(75));
+
+            Log("Writing .stf");
             using (var outFs = new FileStream(stfFile, FileMode.Create, FileAccess.Write))
-            using (var hdrFs = new FileStream(hdrFile, FileMode.Open, FileAccess.Read))
             {
-                hdrFs.CopyTo(outFs);
+                outFs.Write(preMip, 0, preMip.Length);
+                outFs.Write(mipBlob, 0, mipBlob.Length);
             }
-            Dispatcher.Invoke(() => AnimateProgress(60));
 
-            // append DDS data → 100%
-            using (var inFs = new FileStream(ddsPath, FileMode.Open, FileAccess.Read))
-            using (var outFs2 = new FileStream(stfFile, FileMode.Append, FileAccess.Write))
-            {
-                inFs.Seek(HeaderSize, SeekOrigin.Begin);
-                inFs.CopyTo(outFs2);
-            }
+            long expected = preMip.Length + mipBlob.Length;
+            Log($"STF size: {expected} bytes (pre-mip {preMip.Length} + mips {mipBlob.Length})");
+
             Dispatcher.Invoke(() => AnimateProgress(100));
-
             Log("Wrote: " + stfFile);
         }
 
-        public static string DetectCompression(byte[] header)
-        {
-            if (header.Length < 10) return null;
-            ushort code = BitConverter.ToUInt16(header, 0x08);
-            return code switch
-            {
-                0xB2B8 => "DXT1",
-                0x5D70 => "DXT5",
-                _ => null
-            };
-        }
-
-        public static int? DetectWidth(byte[] header)
-        {
-            foreach (int off in new[] { 0x44, 0x45 })
-            {
-                if (header.Length > off)
-                {
-                    byte exp = header[off];
-                    if (exp >= 1 && exp <= 13)
-                        return 1 << exp;
-                }
-            }
-            return null;
-        }
-
-        public static byte[] BuildDdsHeader(int width, string format)
-        {
-            var h = new byte[128];
-            Array.Copy(new byte[] { (byte)'D', (byte)'D', (byte)'S', (byte)' ' }, 0, h, 0, 4);
-            Array.Copy(BitConverter.GetBytes(124), 0, h, 4, 4);
-            Array.Copy(BitConverter.GetBytes(0x00021007), 0, h, 8, 4);
-            Array.Copy(BitConverter.GetBytes(width), 0, h, 12, 4);
-            Array.Copy(BitConverter.GetBytes(width), 0, h, 16, 4);
-            int pitch = format == "DXT1" ? width / 2 : width;
-            Array.Copy(BitConverter.GetBytes(pitch), 0, h, 20, 4);
-            Array.Copy(BitConverter.GetBytes(0), 0, h, 28, 4);
-            Array.Copy(BitConverter.GetBytes(32), 0, h, 76, 4);
-            Array.Copy(BitConverter.GetBytes(0x4), 0, h, 80, 4);
-
-            uint fourCC = format switch
-            {
-                "DXT1" => 0x31545844u,
-                "DXT3" => 0x33545844u,
-                "DXT5" => 0x35545844u,
-                _ => 0u
-            };
-            Array.Copy(BitConverter.GetBytes(fourCC), 0, h, 84, 4);
-            Array.Copy(BitConverter.GetBytes(0x1000), 0, h, 108, 4);
-            return h;
-        }
-
-        // Link click handlers
         private void AboutLink_Click(object sender, RoutedEventArgs e)
         {
-            var about = new AboutWindow
-            {
-                Owner = this
-            };
+            var about = new AboutWindow { Owner = this };
             about.ShowDialog();
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
-            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri)
-            {
-                UseShellExecute = true
-            });
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
             e.Handled = true;
         }
-
     }
 }

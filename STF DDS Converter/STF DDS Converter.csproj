@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- net6.0-windows: works with VS 2022 “.NET desktop development” without a separate .NET 8 install -->
+    <TargetFramework>net6.0-windows</TargetFramework>
     <RootNamespace>STF_DDS_Converter</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
